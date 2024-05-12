@@ -1,0 +1,53 @@
+-Microsoft.AspNetCore.Authentication.JwtBearer
+-Microsoft.IdentityModel.Tokens
+-System.IdentityModel.Tokens.JWT
+-Microsoft.AspNetCore.Identity.EntityFrameworkCore
+
+1. Appsettings.json
+
+"Jwt": {
+"Key": "aabbccddEEGGGHHUUIIIKJDSDSADASJJsad1252Random", //Random String
+"Issuer": "https://localhost:7041",
+"Audience": "https://localhost:7041"
+}			   
+
+2. Program.cs
+
+-Before Building the builder object we add the Jwt authentication service
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options => options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateIssuerSigningKey = true,
+        ValidateLifetime = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwy:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+    });
+
+-after adding the service, we configure the application to use authentication
+
+app.UseAuthentication();
+		   
+3. Add Authorize attribute to add Authentication to the entire class
+
+namespace NZWalks.API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    [Authorize]          //Add Authentication and Authorization
+    public class RegionController : ControllerBase
+    {
+        private readonly IRegionRepository regionRepository;
+        private readonly IMapper mapper;
+
+        public RegionController(IRegionRepository regionRepository, IMapper mapper )
+        {
+            this.regionRepository = regionRepository;
+            this.mapper = mapper;
+        }
+    }
+}
+		   

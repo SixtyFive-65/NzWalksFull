@@ -1,0 +1,37 @@
+1.
+public class AddRegionDto
+{
+    [Required]
+    [MinLength(2, ErrorMessage = "Code has a minimum of 3 characters" )]
+    [MaxLength(3, ErrorMessage = "Code has a maximum of 3 characters")]
+    public string Code { get; set; }
+
+    [Required]
+    [MaxLength(50, ErrorMessage = "Name has a maximum of 50 characters")]
+    public string Name { get; set; }
+    public string? RegionImageUrl { get; set; }
+}
+
+2.
+[HttpPost]
+public async Task<IActionResult> Create([FromBody] AddRegionDto request)
+{
+    //Map DTO to Domain model so we can insert in the DB
+
+    if (!ModelState.IsValid)   //Will validate incoming model --check if the properties are inline with the annotations
+    {
+        return BadRequest(ModelState);
+    }
+
+    var newRegion = await regionRepository.CreateAsync(request);
+
+    var regionDto = new RegionDto()
+    {
+        Id = newRegion.Id,
+        Code = newRegion.Code,
+        Name = newRegion.Name,
+        RegionImageUrl = newRegion.RegionImageUrl
+    };
+
+    return CreatedAtAction(nameof(GetById), new { id = newRegion.Id }, newRegion);                                                                         
+}

@@ -1,0 +1,103 @@
+1. Token Repository
+
+public string CreateJWTToken(IdentityUser model, List<string> roles)
+{
+	var claims = new List<Claim>();
+
+	claims.Add(new Claim(ClaimTypes.Email, model.Email));
+
+	foreach (var role in roles)
+	{
+		claims.Add(new Claim(ClaimTypes.Role, role));
+	}
+
+	var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]));
+	var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+	var token = new JwtSecurityToken(configuration["Jwt:Issuer"], configuration["Jwt:Audience"],
+									 claims,
+									 expires: DateTime.Now.AddMinutes(15), // Token expires after 15 minutes
+									 signingCredentials : credentials); 
+
+	return new JwtSecurityTokenHandler().WriteToken(token);
+}
+
+2. Login Method
+
+[HttpPost]
+[Route("Login")]
+public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
+{
+	var user = await userManager.FindByEmailAsync(request.Username);
+
+	if (user != null)
+	{
+		var checkPassword = await userManager.CheckPasswordAsync(user, request.Password);
+
+		if (checkPassword)
+		{
+			// Get roles for user
+
+			var roles = await userManager.GetRolesAsync(user);
+
+			if (roles != null && roles.Any())
+			{
+				//Create Token
+
+				var jwtToken = tokenRepository.CreateJWTToken(user, roles.ToList());
+				
+				return Ok(new LoginResponseDto { JWTToken = jwtToken});
+			}
+		}
+	}
+
+	return BadRequest("Incorect credentials");
+}
+
+3.Claims make up part of your JWT token, the token contains Issuer,Audience and Claims details.
+
+ -> Goto https://jwt.io/ to decrypt the jwt
+
+
+4. Add API Swagger Authorization : Program.cs
+
+--Add options to the builder.Services.AddSwaggerGen() method.
+
+->
+
+-- This is a one time configuration to use swagger authentication.
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "NZ Walks API", Version = "v1" });   // v1 should be small casing v1 not V1
+    options.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = JwtBearerDefaults.AuthenticationScheme
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = JwtBearerDefaults.AuthenticationScheme
+                },
+                Scheme = "Oauth2",
+                Name = JwtBearerDefaults.AuthenticationScheme,
+                In = ParameterLocation.Header
+            },
+            new List<string>()
+        }
+    });
+});
+
+
+
+
+	
+

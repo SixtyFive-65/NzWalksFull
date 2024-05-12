@@ -1,0 +1,105 @@
+--New ConnectionString for the users database
+--New DbContext with roles(Seed data)
+
+
+--Add New ConnectionString on Appsettings.json
+
+"ConnectionStrings": {
+"NZWalksConnectionString": "Server=RRT01455\\SQLEXPRESS;Database=NZWalksDb;Trusted_Connection=True;TrustServerCertificate=True",
+"NZWalksAuthConnectionString": "Server=RRT01455\\SQLEXPRESS;Database=NZWalksAuthDb;Trusted_Connection=True;TrustServerCertificate=True"
+}
+
+## Inject dbContext in Program.cs
+
+builder.Services.AddDbContext<NZWalksAuthDbContext>(options =>
+options.UseSqlServer(builder.Configuration.GetConnectionString("NZWalksAuthConnectionString"))); //NZWalks Auth DBcontext
+
+
+## When Injecting 2 DbContext -> We get an exception if the DbContextOptions doesn't have a Type passed
+
+public NZWalksDbContext(DbContextOptions dbContextOptions) : base(dbContextOptions)
+{
+	
+}
+
+public NZWalksAuthDbContext(DbContextOptions options) : base(options) //used to inject DbContext with our own options
+{
+
+}
+
+## Above Options don't have a type so we get an exception
+
+
+## we should pass a type to options as below
+
+public NZWalksDbContext(DbContextOptions<NZWalksDbContext> dbContextOptions) : base(dbContextOptions)
+{
+   
+}
+
+public NZWalksAuthDbContext(DbContextOptions<NZWalksAuthDbContext> options) : base(options) //used to inject DbContext with our own options
+{
+
+}
+
+## Above Options have types so no exceptions
+
+
+1. Seed default roles
+
+public class NZWalksAuthDbContext : IdentityDbContext
+{
+	public NZWalksAuthDbContext(DbContextOptions<NZWalksAuthDbContext> options) : base(options) //used to inject DbContext with our own options
+	{
+	}
+
+	protected override void OnModelCreating(ModelBuilder builder)
+	{
+		base.OnModelCreating(builder);
+
+		string readerRoleId = "e638b05b-87d2-4f61-aca4-7e0c7e082cc6";
+		string writerRoleId = "a53c02ee-ab1c-4e87-bccf-9ef03dffe959";
+
+		var roles = new List<IdentityRole>
+		{
+			new IdentityRole
+			{
+				Id = readerRoleId,
+				ConcurrencyStamp = readerRoleId,
+				Name = "Reader",
+				NormalizedName = "Reader".ToUpper()
+			},
+			new IdentityRole
+			{
+				Id = writerRoleId,
+				ConcurrencyStamp = writerRoleId,
+				Name = "Writer",
+				NormalizedName = "Writer".ToUpper()
+			}
+		};
+
+		builder.Entity<IdentityRole>().HasData(roles);
+	}
+}
+
+2. Run Migration, since we have 2 dbContexts we need to specify the context we are running the migration agains
+
+PM>add-migration "Creating Auth Database" -context "NZWalksAuthDbContext"
+PM>update-database -context "NZWalksAuthDbContext"
+
+3. Inject Identity in program.cs
+
+builder.Services.AddIdentityCore<IdentityUser>()  //Setup Identity
+    .AddRoles<IdentityRole>()
+    .AddTokenProvider<DataProtectorTokenProvider<IdentityUser>>("NZWalks") //NZWalks : provider name
+    .AddEntityFrameworkStores<NZWalksAuthDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.Configure<IdentityOptions>(options => //Configure password requirements
+{
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequiredLength = 6;
+    options.Password.RequiredUniqueChars = 1;
+});

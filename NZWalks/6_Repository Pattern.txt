@@ -1,0 +1,27 @@
+Repository Pattern 
+  -Design pattern that separates the  data access layer from the application
+  -Provides interface without exposing implementation
+  -Helps create Abstraction
+  
+*The Controller shouldn't access the database directly, The repository should be between the controller and database
+
+
+Benefits
+  -Decoupling
+  -Consistency
+  -Perfomance
+  -Multiple data sources(switching)
+  
+**************Note *************
+
+builder.Services.AddScoped<IRegionRepository, SQLRegionRepository>();  //Inject the repository after the DB context injection
+
+
+builder.Services.AddScoped<IRegionRepository, InMemoryRegionRepository>(); // We can have multiple implementations of the same repository  e.g swapping between VuvuRepo and RmRepo
+
+**************Note ***********
+
+* Repository always work with domain models
+
+
+

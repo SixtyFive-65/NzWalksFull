@@ -1,0 +1,57 @@
+1. Read Role
+[HttpGet]
+[Authorize(Roles = "Reader")]
+
+public async Task<IActionResult> GetAll()  // Async   : Should make all long running tasks async (Db calls : API calls)
+{
+	var regions = await regionRepository.GetAllAsync();
+
+	var regionsDto = mapper.Map<List<RegionDto>>(regions);
+
+	return Ok(regionsDto); // GET : OK
+}
+
+
+2. Write
+
+[HttpPost]
+[ValidateModelAttributes]
+[Authorize(Roles = "Writer")]
+
+public async Task<IActionResult> Create([FromBody] AddRegionDto request)
+{
+	//Map DTO to Domain model so we can insert in the DB
+
+	var newRegion = await regionRepository.CreateAsync(request);
+
+	var regionDto = new RegionDto()
+	{
+		Id = newRegion.Id,
+		Code = newRegion.Code,
+		Name = newRegion.Name,
+		RegionImageUrl = newRegion.RegionImageUrl
+	};
+
+	return CreatedAtAction(nameof(GetById), new { id = newRegion.Id }, newRegion); //POST : 201 response....return created Item
+																 // return CreatedAtAction("GetById", new { id = region.Id}, regionDto); //POST : same as above
+}
+
+3. Read and Write Role
+
+[HttpGet]
+[Route("{id:guid}")]
+[Authorize(Roles = "Reader,Writer")]
+
+public async Task<IActionResult> GetById([FromRoute] Guid id)
+{
+   var region = await regionRepository.GetByIdAsync(id);
+
+   if (region == null)
+   {
+	   return NotFound();
+   }
+
+   var regionDto = mapper.Map<RegionDto>(region);
+
+   return Ok(regionDto);   // GET : OK 200 response
+}

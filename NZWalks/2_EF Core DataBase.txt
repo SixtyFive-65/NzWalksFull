@@ -1,0 +1,96 @@
+******Create Database Code First******************
+
+Navigation Properties : allow navigation from domain model to another.. represent a relationship between 2 entities
+
+1. Create Domain Models  (Create "Model" Folder-> Create "Domain" Folder inside Model folder -> Add classes in Domain folder) 
+  -Create Relationships using Foreign Keys and Navigation properties
+ 
+-e.g Walk,Difficulty and Region
+ 
+public class Walk
+ {
+     public Guid Id { get; set; }
+     public string Name { get; set; }
+     public string Description { get; set; }
+     public double LengthInKm { get; set; }
+     public string? WalkImageUrl { get; set; } // ? means Nullable 
+     public Guid DifficultyId { get; set; }  //ForeignKey
+     public Guid RegionId { get; set; }  //ForeignKey
+
+    
+	//***** Navigation Properties  ::: One to One RelationShip between Walk and Navigation property models *****\\
+
+     public Difficulty Difficulty { get; set; }  // a walk has one difficulty
+     public Region Region { get; set; }  // a walk has one Region
+ }
+
+
+2.Add EF(Entity FrameWork) Core packages--- VS manage nuget packages and search for below
+
+ -Microsoft.EntityFrameworkCore.SqlServer
+ -Microsoft.EntityFrameworkCore.Tools
+
+
+3.Create a DBContext class (Create a new folder-> create a DbContext (MyDbContext) class inside the folder)
+ -The DbContext Class MUST inherit from DbContext ( MyDbContext : DbContext) 
+
+    public class NZWalksDbContext : DbContext
+    {
+
+    }
+
+-Create a constructor to pass dbOptions so we can pass our own connections to the program.cs(New connection string)
+
+     public class NZWalksDbContext : DbContext
+    {
+        public NZWalksDbContext(DbContextOptions dbContextOptions) : base(dbContextOptions)
+        {
+            
+        }
+    }
+
+-Create DBSets (Representation of the entities(domain models) on the databse)
+
+    public class NZWalksDbContext : DbContext
+    {
+        public NZWalksDbContext(DbContextOptions dbContextOptions) : base(dbContextOptions) //passes options (connection string) to the base when we Inject the dbContext
+        {
+            
+        }
+
+        public DbSet<Difficulty> Difficulties { get; set; }
+        public DbSet<Region> Regions { get; set; }
+        public DbSet<Walk> Walks { get; set; }
+    }
+
+4.Create Connection to the Database(Add connection string)
+
+-Open AppSettings.json file and add the below connection string tag
+
+  "ConnectionStrings": {
+    "NZWalksConnectionString": "Server=RRT01455\\SQLEXPRESS;Database=NZWalksDb;Trusted_Connection=True;TrustServerCertificate=True"
+  }
+
+-- as of .Net 7 we need "TrustServerCertificate=True" to connect to a local instance of SQL server 
+
+5.Dependency Inject (Inject the DbContext in our application)
+
+-Open Program.cs
+
+
+builder.Services.AddDbContext<NZWalksDbContext>(options =>
+options.UseSqlServer(builder.Configuration.GetConnectionString("NZWalksConnectionString"))); //Options passed on our NZWalksDbContext constructor 
+																							 //Gets the connection string from appsettings.json
+
+var app = builder.Build();  // Inject DbContext before building the App
+
+
+6.Run EF Core Migration
+
+-Open Tools -> Nuget Package Manager -> Package Manager Console
+
+PM>Add-Migration "InitialMigration"  //Creates Migration File
+PM>Update-Database                   //Executes migration file to the database
+
+
+************* Database Created *********************

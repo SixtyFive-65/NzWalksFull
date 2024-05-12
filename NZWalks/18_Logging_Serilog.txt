@@ -1,0 +1,53 @@
+--Install serilog packages 
+ -Serilog
+ -Serilog.AspNetCore
+ -Serilog.Sinks.Console   --allows console logging
+ 
+1.Program.cs logging to Console
+
+-add below after  "var builder = WebApplication.CreateBuilder(args);"
+
+var logger = new LoggerConfiguration() //create logger
+    .WriteTo.Console()   //console logging
+    .MinimumLevel.Information()
+    .CreateLogger();
+
+builder.Logging.ClearProviders();  //clear other log providers
+
+builder.Logging.AddSerilog(logger); //add serilog
+
+1. Using Logger
+
+public RegionController(IRegionRepository regionRepository, IMapper mapper, ILogger<RegionController> logger)
+{
+	this.regionRepository = regionRepository;
+	this.mapper = mapper;
+	this.logger = logger;
+}
+
+[HttpGet]
+// [Authorize(Roles = "Reader")]
+
+public async Task<IActionResult> GetAll()  // Async   : Should make all long running tasks async (Db calls : API calls)
+{
+	logger.LogInformation("GetAllRegions has been Invoked");
+   
+	var regions = await regionRepository.GetAllAsync();
+
+	var regionsDto = mapper.Map<List<RegionDto>>(regions);
+
+	logger.LogInformation($"GetAllRegions has Completed with data: {JsonSerializer.Serialize(regionsDto)}"); // Return data as Json to logger
+
+	return Ok(regionsDto); // GET : OK
+}
+
+2.Program.cs Logging  to text file
+ -- -Serilog.Sinks.File 
+
+var logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("C:\\Serilogs/logs.txt", rollingInterval: RollingInterval.Day) // new log file everyday
+    .MinimumLevel.Information()  //Shows information and debug logs
+    //.MinimumLevel.Warning()  // Won't show Info/Debug logs
+    .CreateLogger();
+

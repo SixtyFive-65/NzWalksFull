@@ -1,0 +1,66 @@
+Asynchronous programming
+
+ -Allows program to continue executing other tasks while waiting for the long running operation to complete.
+ 
+ -Async/Await KeyWords
+
+DbContext.Remove() is synchronous and doesn't support async 
+ 
+1. 
+[HttpPost]
+public async Task<IActionResult> Create([FromBody] AddRegionDto request)
+{
+    //Map DTO to Domain model so we can insert in the DB
+
+    var region = new Region()
+    {
+        Code = request.Code,
+        Name = request.Name,
+        RegionImageUrl = request.RegionImageUrl
+    };
+
+    await nZWalksDbContext.Regions.AddAsync(region);
+
+    await nZWalksDbContext.SaveChangesAsync();
+
+    var regionDto = new RegionDto()
+    {
+        Id = region.Id,
+        Code = region.Code,
+        Name = region.Name,
+        RegionImageUrl = region.RegionImageUrl
+    };
+
+    return CreatedAtAction(nameof(GetById), new { id = region.Id }, regionDto); //POST : 201 response....return created Item
+                                                                                // return CreatedAtAction("GetById", new { id = region.Id}, regionDto); //POST : same as above
+}
+2.		
+[HttpDelete]
+[Route("{id:guid}")]
+public async Task<IActionResult> Delete([FromRoute] Guid id)
+{
+    //Map DTO to Domain model so we can insert in the DB
+
+    var regionDomainModel = await nZWalksDbContext.Regions.FindAsync(id);  
+
+    if (regionDomainModel == null)
+    {
+        return NotFound();
+    }
+
+    nZWalksDbContext.Regions.Remove(regionDomainModel);  // Remove is a synchronouse method : doesn't support async
+
+    await nZWalksDbContext.SaveChangesAsync();
+
+    var regionDto = new RegionDto()
+    {
+        Id = regionDomainModel.Id,
+        Code = regionDomainModel.Code,
+        Name = regionDomainModel.Name,
+        RegionImageUrl = regionDomainModel.RegionImageUrl
+    };
+
+    return Ok(regionDto); // DELETE : 200 response....return success and updated Item
+    //return Ok(); This also works  
+} 
+ 

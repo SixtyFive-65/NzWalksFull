@@ -1,0 +1,38 @@
+- Create a new folder in the solution -> Create a new class "ValidateModelAttributes" and inherit from "ActionFilterAttribute"
+ -Override the OnActionExecuting method
+
+1.
+public class ValidateModelAttributes : ActionFilterAttribute
+{
+	public override void OnActionExecuting(ActionExecutingContext context)
+	{
+		base.OnActionExecuting(context);
+
+		if(!context.ModelState.IsValid)
+		{
+			context.Result = new BadRequestResult();
+		}
+	}
+}
+
+
+2.
+
+[HttpPut]
+[Route("{id:guid}")] 
+[ValidateModelAttributes]  // The custom attribute will do the model validation
+
+public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateRegionDto request)
+{
+	var regionDomainModel = await regionRepository.UpdateAsync(id,request);
+
+	var regionDto = new RegionDto()
+	{
+		Id = regionDomainModel.Id,
+		Code = regionDomainModel.Code,
+		Name = regionDomainModel.Name,
+		RegionImageUrl = regionDomainModel.RegionImageUrl
+	};
+
+	return Ok(regionDto); // PUT : 200 response....return success and updated Item
+}

@@ -1,0 +1,43 @@
+AutoMapper (Optional mapping to reduce lines of code)
+
+-object to Object mapping : Map between DTO and Domain Models
+
+1. Install AutoMapper nuget package -> Create a folder "Mappings" -> Inside Mappings folder create "AutoMapperProfiles.cs" class and inherit from Profiles
+
+public class AutoMapperProfiles : Profile
+{
+    public AutoMapperProfiles()
+    {
+        CreateMap<Region, RegionDto>().ReverseMap();         //CreateMap<Source, Destination>()
+        CreateMap<Region, AddRegionDto>().ReverseMap();
+        CreateMap<UpdateRegionDto, Region>().ReverseMap();
+    }
+}
+
+2.
+
+[HttpGet]
+public async Task<IActionResult> GetAll()
+{
+    var regions = await regionRepository.GetAllAsync(); //Source
+
+    var regionsDto = new List<RegionDto>(); // Destination
+
+    mapper.Map(regions, regionsDto);    //Map source to destination
+ 
+    return Ok(regionsDto); // GET : OK
+}
+
+
+----> Even Cleaner Below
+
+
+[HttpGet]
+public async Task<IActionResult> GetAll()
+{
+    var regions = await regionRepository.GetAllAsync();
+
+    var regionsDto = mapper.Map<List<RegionDto>>(regions);  // Type is the destination and we pass the source as a parameter
+
+    return Ok(regionsDto); // GET : OK
+}

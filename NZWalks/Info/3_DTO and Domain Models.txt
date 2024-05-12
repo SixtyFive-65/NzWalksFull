@@ -1,0 +1,22 @@
+
+### API talks to the domain models but its good practice to use DTOs to send data back to the client( don't sent back the domain model). ###
+
+*DTO -> Data Transfer Object
+ -Transfer data between different layers
+ -contains subset of properties in the domain model
+
+*Client -> DTO -> API -> DomainModel -> Database
+	
+
+Advantages of DTO 
+   -Separation of concerns
+   -Perfomance
+   -Security
+   -Versioning (change domain model without affecting request model)
+
+
+
+
+ 
+
+

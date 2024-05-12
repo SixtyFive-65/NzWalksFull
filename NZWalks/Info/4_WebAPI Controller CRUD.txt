@@ -1,0 +1,150 @@
+##### 
+
+var regionsFind = nZWalksDbContext.Regions.Find(id);  //Uses primary key : Indexed search. 
+
+var regionsFirstOrDefault = nZWalksDbContext.Regions.FirstOrDefault(_ => _.Id == id);  // searches by specified column (can use any column)
+
+#####
+
+
+1. If you have 2 Get Methods, you need to specify the route for the other ones, otherwise the swagger defination will fail to build.. only one Get can be without the Route(Automatically routes)
+
+[HttpGet]
+public IActionResult GetAll()
+{
+    return Ok($"Success");
+}
+
+[HttpGet]
+[Route("GetAllOrdered")]  //Specify Route
+[Route("{id}")]           //works the same as above, expects the id 
+public IActionResult GetAllOrdered()
+{
+    return Ok($"Success");
+}
+
+2. Dependency Inject the DbContext on the controller
+
+    public class RegionController : ControllerBase
+    {
+        private readonly NZWalksDbContext nZWalksDbContext;
+
+        public RegionController(NZWalksDbContext nZWalksDbContext)
+        {
+            this.nZWalksDbContext = nZWalksDbContext;
+        }
+
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            var regions = nZWalksDbContext.Regions.ToList();
+
+            return Ok(regions);
+        }
+    }
+
+3.	
+
+[HttpGet]
+[Route("{id:guid}")]   //Specify type  : type is Optional
+public IActionResult GetById([FromRoute] Guid id)   //FromRoute is optional
+{
+	var regions = nZWalksDbContext.Regions.FirstOrDefault(_ => _.Id == id);
+	
+	if (regions == null)
+	{
+		return NotFound();
+	}
+	
+	return Ok(regions);
+}
+
+
+4.
+[HttpPost]
+public IActionResult Create([FromBody] RegionRequestDto request)
+{
+    //Map DTO to Domain model so we can insert in the DB
+
+    var region = new Region()
+    {
+        Code = request.Code,
+        Name = request.Name,
+        RegionImageUrl = request.RegionImageUrl
+    };
+
+    nZWalksDbContext.Regions.Add(region);
+
+    nZWalksDbContext.SaveChanges();
+
+    var regionDto = new RegionDto()
+    {
+        Id=region.Id,
+        Code = region.Code,
+        Name = region.Name, 
+        RegionImageUrl = region.RegionImageUrl
+    };
+
+    return CreatedAtAction(nameof(GetById), new { id = region.Id}, regionDto);  //POST : 201 response....return created Item
+}
+
+5.
+[HttpPut]
+[Route("{id:guid}")]
+public IActionResult Update([FromRoute] Guid id, [FromBody] UpdateRegionDto request)
+{
+    //Map DTO to Domain model so we can insert in the DB
+
+    var regionDomainModel = nZWalksDbContext.Regions.Find(id);  //This will track any changes to the model, we can just save changes without running nZWalksDbContext.Update()
+
+    if (regionDomainModel == null)
+    {
+        return NotFound();
+    }
+
+    regionDomainModel.Code = request.Code;
+    regionDomainModel.Name = request.Name;
+    regionDomainModel.RegionImageUrl = request.RegionImageUrl;
+
+    nZWalksDbContext.SaveChanges();   /// Will save the updated entity because the model was already tracked line 96
+
+    var regionDto = new RegionDto()
+    {
+        Id = regionDomainModel.Id,
+        Code = regionDomainModel.Code,
+        Name = regionDomainModel.Name,
+        RegionImageUrl = regionDomainModel.RegionImageUrl
+    };
+
+    return Ok(regionDto); // PUT : 200 response....return success and updated Item
+}
+
+6.
+[HttpDelete]
+[Route("{id:guid}")]
+public IActionResult Delete([FromRoute] Guid id)
+{
+    //Map DTO to Domain model so we can insert in the DB
+
+    var regionDomainModel = nZWalksDbContext.Regions.Find(id);  //This will track any changes to the model, we can just save changes without running nZWalksDbContext.Update()
+
+    if (regionDomainModel == null)
+    {
+        return NotFound();
+    }
+
+    nZWalksDbContext.Regions.Remove(regionDomainModel);
+
+    nZWalksDbContext.SaveChanges();
+
+    var regionDto = new RegionDto()
+    {
+        Id = regionDomainModel.Id,
+        Code = regionDomainModel.Code,
+        Name = regionDomainModel.Name,
+        RegionImageUrl = regionDomainModel.RegionImageUrl
+    };
+
+    return Ok(regionDto); // DELETE : 200 response....return success and removed Item
+    //return Ok(); This also works  
+}

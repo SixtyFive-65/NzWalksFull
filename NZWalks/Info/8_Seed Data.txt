@@ -1,0 +1,60 @@
+*******************Seeding *****************************
+
+// Make sure you have empty tables/ foreign don't mismatch
+
+
+--- We seed data on the DbContext file -- OnModelCreating function
+
+1.
+public class NZWalksDbContext : DbContext
+{
+    public NZWalksDbContext(DbContextOptions dbContextOptions) : base(dbContextOptions)
+    {
+        
+    }
+
+    public DbSet<Difficulty> Difficulties { get; set; }
+    public DbSet<Region> Regions { get; set; }
+    public DbSet<Walk> Walks { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        //Seed data for Difficulties  : Easy, Medium, Hard
+
+        var difficulties = new List<Difficulty>()
+        {
+          new Difficulty()
+          {
+              Id = Guid.Parse("70cb9776-534c-495f-b738-f35b93d5442a"),
+              Name = "Easy"
+          },
+          new Difficulty()
+          {
+              Id = Guid.Parse("80cb9776-534c-495f-b738-f35b93d5442b"),
+              Name = "Medium"
+
+          },
+          new Difficulty()
+          {
+              Id = Guid.Parse("90cb9776-534c-495f-b738-f35b93d5442c"),
+              Name = "Hard"
+          }
+        };
+        
+        modelBuilder.Entity<Difficulty>().HasData(difficulties);
+    }
+}
+
+2. Add and Run migration to add Seed data to the database
+
+PM>Add-Migration "SeedingRegionAndDefficluty"
+PM>Update-database
+
+
+********************Seeding done ******************
+
+
+
+

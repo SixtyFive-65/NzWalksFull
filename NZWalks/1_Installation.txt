@@ -1,0 +1,14 @@
+1. Download latest VS
+ https://visualstudio.microsoft.com/downloads/
+
+
+
+
+2. Download .Net SDK and .NET Runtime (Install SDK and Runtime)
+ https://dotnet.microsoft.com/en-us/download/dotnet/8.0
+
+
+
+
+3.SQL Server Management studio
+ https://www.microsoft.com/en-us/sql-server/sql-server-downloads

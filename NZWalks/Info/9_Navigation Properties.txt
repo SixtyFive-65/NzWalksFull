@@ -1,0 +1,48 @@
+Domain
+public class Walk
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public double LengthInKm { get; set; }
+    public string? WalkImageUrl { get; set; }
+    public Guid DifficultyId { get; set; }
+    public Guid RegionId { get; set; }
+
+    //***** Navigation Properties  ::: One to One RelationShip between Walk and Navigation property models *****\\
+
+    public Difficulty Difficulty { get; set; }
+    public Region Region { get; set; }  
+}
+
+DTO
+public class WalkDto
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public double LengthInKm { get; set; }
+    public string? WalkImageUrl { get; set; }
+    public RegionDto Region { get; set; }
+    public DifficultyDto Difficulty { get; set; }
+}
+
+
+1.
+public async Task<List<Walk>> GetAllAsync()
+{
+    return await nZWalksDbContext.Walks
+        .Include("Difficulty")                           //Get related data 
+        .Include("Region").ToListAsync();
+}
+
+  //// Above and Below are the same but the below is type safe
+  
+public async Task<List<Walk>> GetAllAsync()
+{
+  return await nZWalksDbContext.Walks
+	.Include(_ => _.Difficulty)
+	.Include(_ => _.Region).ToListAsync();
+}
+
+Navigation Properties will link all related data back to the view

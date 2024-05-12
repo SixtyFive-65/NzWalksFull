@@ -1,0 +1,8 @@
+DB server : sqlserver-nzwalks-ra-dev-001
+App group : 
+
+
+DB server creds ->
+
+ admin login : adminlogin
+ password : myserverlogin1@

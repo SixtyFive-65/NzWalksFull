@@ -1,0 +1,21 @@
+Authentication -> Determine user identity
+               -> UserName and Password
+
+JWT(Json Web Token) -> Open standard that defines a compact and self-contained way for securely transmitting information between parties as a json object.
+                    -> this information can be trusted because its digitally signed.
+					-> Signed using a secret or a public private key pair using RSA or ECDSA
+
+User logs in using UserName and Password -> If the information is correct the API generates a JWT token for the user.
+                                         -> the Site uses the token to make calls to the API.
+										 -> API checks if the token is correct, if its correct the API returns data else doesn't return data.
+	
+Authorization  -> Determine wether a user has permission to perfom an action or access a resource.
+               -> Checks if user has ReadOnly or ReadWrite Role
+			   
+-Microsoft.AspNetCore.Authentication.JwtBearer
+-Microsoft.IdentityModel.Tokens
+-System.IdentityModel.Tokens.JWT
+-Microsoft.AspNetCore.Identity.EntityFrameworkCore
+			   
+
+			   

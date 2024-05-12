@@ -1,0 +1,93 @@
+-- IQuerable type should be used to filter on
+
+1.Filtering
+
+public async Task<List<Walk>> GetAllAsync(string? filterOn = null, string? filterQuery = null)
+{
+	var walks = nZWalksDbContext.Walks.Include("Difficulty").Include("Region").AsQueryable();
+
+	//Filtering
+
+	if(!string.IsNullOrWhiteSpace(filterOn) && !string.IsNullOrWhiteSpace(filterQuery))
+	{
+		if(filterOn.Equals("Name", StringComparison.OrdinalIgnoreCase)) //Ignore casing
+		{
+			walks = walks.Where(x => x.Name.Contains(filterQuery));
+		}
+	} 
+
+	return walks.ToList();  
+}
+
+2. Sorting
+
+public async Task<List<Walk>> GetAllAsync(string? filterOn = null, string? filterQuery = null, string? sortBy = null,bool isAscending = true)
+{
+	var walks = nZWalksDbContext.Walks.Include("Difficulty").Include("Region").AsQueryable();
+
+	//Sorting
+
+	if (!string.IsNullOrWhiteSpace(sortBy))
+	{
+		if (sortBy.Equals("Name", StringComparison.OrdinalIgnoreCase)) //Ignore casing
+		{
+			walks = isAscending ? walks.OrderBy(x => x.Name) : walks.OrderByDescending(x => x.Name);
+		}
+		else if( sortBy.Equals("Length", StringComparison.OrdinalIgnoreCase))
+		{
+			walks = isAscending ? walks.OrderBy(x => x.LengthInKm) : walks.OrderByDescending(x => x.LengthInKm);
+		}
+	}
+
+	return walks.ToList();  
+}
+
+3.Paging
+
+public async Task<List<Walk>> GetAllAsync(string? filterOn = null, string? filterQuery = null, string? sortBy = null,bool isAscending = true, int pageNumber = 1, int pageSize = 1000)
+{
+	var walks = nZWalksDbContext.Walks.Include("Difficulty").Include("Region").AsQueryable();
+
+	//Pagination
+
+	var skipResults = (pageNumber - 1) * pageSize;   //Paging formular : works on small/large data sets
+
+	return await walks.Skip(skipResults).Take(pageSize).ToListAsync();  
+}
+
+--- All Combined
+
+public async Task<List<Walk>> GetAllAsync(string? filterOn = null, string? filterQuery = null, string? sortBy = null,bool isAscending = true, int pageNumber = 1, int pageSize = 1000)
+{
+	var walks = nZWalksDbContext.Walks.Include("Difficulty").Include("Region").AsQueryable();
+
+	//Filtering
+
+	if(!string.IsNullOrWhiteSpace(filterOn) && !string.IsNullOrWhiteSpace(filterQuery))
+	{
+		if(filterOn.Equals("Name", StringComparison.OrdinalIgnoreCase)) //Ignore casing
+		{
+			walks = walks.Where(x => x.Name.Contains(filterQuery));
+		}
+	}
+
+	//Sorting
+
+	if (!string.IsNullOrWhiteSpace(sortBy))
+	{
+		if (sortBy.Equals("Name", StringComparison.OrdinalIgnoreCase)) //Ignore casing
+		{
+			walks = isAscending ? walks.OrderBy(x => x.Name) : walks.OrderByDescending(x => x.Name);
+		}
+		else if( sortBy.Equals("Length", StringComparison.OrdinalIgnoreCase))
+		{
+			walks = isAscending ? walks.OrderBy(x => x.LengthInKm) : walks.OrderByDescending(x => x.LengthInKm);
+		}
+	}
+
+	//Pagination
+
+	var skipResults = (pageNumber - 1) * pageSize;  //Paging formular : works on small/large data sets
+
+	return await walks.Skip(skipResults).Take(pageSize).ToListAsync();  
+}
