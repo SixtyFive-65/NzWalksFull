@@ -1,0 +1,11 @@
+    [Table($"{nameof(MyTable: )}", Schema = "mySchema")]
+    public class MyTable: IEntityTypeConfiguration<MyTable>
+    {
+        public Guid Id { get; set; }
+ 
+        public void Configure(EntityTypeBuilder<MyTable> builder)
+        {
+            //builder
+            //    .ToTable(nameof(MyTable), "mySchema");
+        }
+    }
