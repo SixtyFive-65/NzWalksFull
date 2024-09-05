@@ -1,0 +1,27 @@
+public class FlurlHelper
+{
+	public async Task<T> FlurlCall<T, T2>(T responseModel,T2 requestModel, string url, string token, string apiKey, HttpMethod method)
+	{
+		if (method == HttpMethod.Post)
+		{
+			var request = await url.WithOAuthBearerToken(token).WithHeader("x-api-key", apiKey)
+				.PostJsonAsync(requestModel).ReceiveJson<T>();
+
+			return request;
+		}
+		else if (method == HttpMethod.Get) { }
+		{
+			var request = await url.WithOAuthBearerToken(token).WithHeader("x-api-key", apiKey)
+			   .SetQueryParams(requestModel).GetJsonAsync<T>();
+
+			return request;
+		}
+	}
+}
+
+ var data = await flurlHelper.FlurlCall(responseModel :new GenericResponse<OperationResult<IEnumerable<AccountLookupGridModel>>>(),
+	 requestModel: model,
+	 Api.FindashApiBaseAddress.AppendPathSegment($"Api/Controller/Endpoint"),
+	 model.AccessToken,
+	 "",
+	 HttpMethod.Post);
